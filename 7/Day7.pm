@@ -1,10 +1,10 @@
 use strict;
+use warnings FATAL => "all";
 
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 
-use Common;
-use Array::Utils qw(:all);
+use Common qw (contains println);
 
 package Day7;
 
@@ -39,22 +39,46 @@ my %CARD_TO_RANK = (
 # );
 
 my @HAND_TYPES = (
-    {
+    { # invalid hand rank...
+        'Name' => 'Invalid',
+        'CardCount' => [ 0 ],
+        'Rank' => 0
+    },
+    { # worst hand rank
         'Name' => 'High Card',
         'CardCount' => [ 1 ],
         'Rank' => 1
-    }, # worst hand rank
+    },
+    {
+        'Name' => 'Pair',
+        'CardCount' => [ 2 ],
+        'Rank' => 2
+    },
+    {
+        'Name' => 'Two Pair',
+        'CardCount' => [ 2, 2 ],
+        'Rank' => 3
+    },
+    {
+        'Name' => 'Three of a Kind',
+        'CardCount' => [ 3 ],
+        'Rank' => 4
+    },
     {
         'Name' => 'Full House',
         'CardCount' => [ 2, 3 ],
         'Rank' => 5
-    } # worst hand rank
-    # ( 2 ) => 2,
-    # ( 2, 2 ) => 3,
-    # ( 3 ) => 4,
-    # ( 2, 3 ) => 5,
-    # ( 4 ) => 6,
-    # ( 5 ) => 7, # best hand rank
+    },
+    {
+        'Name' => 'Four of a Kind',
+        'CardCount' => [ 4 ],
+        'Rank' => 6
+    },
+    {
+        'Name' => 'Five of a Kind? Lol',
+        'CardCount' => [ 5 ],
+        'Rank' => 7
+    }
 );
 
 my @hands = ("11234", "AKKQJ");
@@ -69,22 +93,20 @@ sub GetCardCount #(cards)
     # Count the amount of each card in a pile
 
     # my @testKeys = keys (%TEST);
-    foreach my $card (@cards)
-    {
-        Common::println ($card);
-    }
+    # foreach my $card (@cards)
+    # {
+    #     Common::println ($card);
+    # }
 
 
-    my @cardKeys = sort (keys (%CARD_TO_RANK));
-    foreach my $key (@cardKeys)
+    my @cardKeys = keys (%CARD_TO_RANK);
+    foreach my $key (sort (@cardKeys))
     {
-        Common::println ("Key: $key");
-        # Common::println ("Matching: $key");
-        # Common::println ($hand =~ m/$key/);
+        # Common::println ("Key: $key");
         my $size = grep ( /$key/ig, @cards);
-        Common::println ($size);
         if ($size > 0)
         {
+            # Common::println ($size);
             push (@count, $size);
         }
     }
@@ -94,42 +116,22 @@ sub GetCardCount #(cards)
 
 sub GetHandType #(cards)
 {
-    my @cards = @_;
+    my @cards = split ('', shift ());
     # todo: do something with cards and handcount
-    return $HAND_TYPES[$#HAND_TYPES];
-}
-
-sub GetHandRank #(cardCounts)
-{
-    # working from the best hand, Look at
-    # each card count and try to match the best
-    # my @handTypes = sort ( keys (%HAND_TYPE_TO_RANK) );
-    # for ( my $i = 0; $i < @handTypes; $i++ )
-    # {
-    #     print "( ";
-    #     foreach my $cardCount ((@{$handTypes[$i]}))
-    #     {
-    #         print $cardCount;
-    #     }
-    #     print ")\n";
-    # }
-
-
-    foreach my $handType (@HAND_TYPES)
+    my @cardCount = GetCardCount(@cards);
+    Common::println ('GetCardCount!!');
+    Common::println ('Hand CardCount: [' . join (',', @cardCount) . ']');
+    for my $handType (reverse (@HAND_TYPES))
     {
-        Common::println ($handType);
-        my $rank = $handType->{'Rank'};
-        Common::println ("Rank: $rank");
-
-        my @cardCounts = @{$handType->{'CardCount'}};
-        print "Card counts:";
-        foreach my $count (@cardCounts)
+        Common::println ('Checking '.$handType->{'Name'});
+        Common::println ('Count: [' . join (' ', @{$handType->{"CardCount"}}) . ']');
+        if (Common::contains (@{$handType->{"CardCount"}}, @cardCount))
         {
-            print " $count";
+            return $handType;
         }
-        Common::println ("");
     }
+    # If nothing matches, return invalid
+    return $HAND_TYPES[0];
 }
-
 
 return 1;
