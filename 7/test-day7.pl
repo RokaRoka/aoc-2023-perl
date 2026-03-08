@@ -2,7 +2,7 @@ use strict;
 use warnings FATAL => "all";
 use Test;
 
-BEGIN { plan tests => 6, todo => [5, 6]}
+BEGIN { plan tests => 7, todo => []}
 
 use FindBin;
 use lib "$FindBin::Bin/.";
@@ -45,17 +45,34 @@ ok (!contains (@arrSmall, @arrBig));
 #
 # ex. The hand of 11155 (Three "1"s, two "5"s, i.e. cardcount [2, 3]
 #     should match the "Full House" HandType.
-my $handType = Day7::GetHandType("33355");
+my @testHand = split ('', '33355');
+my $handType = Day7::GetHandType(@testHand);
 ok ($handType->{'Name'}, "Full House");
 
 # Test 3
 # Check the hand rank of our Full House.
-ok ($handType->{'Rank'}, 5);
+ok ($handType->{'HandRank'}, 5);
 
 # Test 4
-# Compare HandRanks between two hands
-ok (1);
+# Hand Comp!! Winning Rank
 
-# Day7::GetHandRank();
-#ok (sort (1, 2) eq sort (2, 1));
+my @winningPlayerHand = split('', 'AAAAA');
+my @loserPlayerHand = split('','22456');
+ok ( Day7::HandComp (\@winningPlayerHand, \@loserPlayerHand), 1 );
 
+# Hand Comp!! Winning high card
+my @winningPlayerHand2 = split('', '333AA');
+my @loserPlayerHand2 = split('','33322');
+ok ( Day7::HandComp (\@loserPlayerHand2, \@winningPlayerHand2), 0);
+
+my @matchingWinnerHand = split ('', 'AAAAA');
+my @matchingWinnerHand2 = split ('', 'AAAAA');
+ok ( Day7::HandComp (\@matchingWinnerHand, \@matchingWinnerHand2), 1);
+# my @test4GameResults = Day7::GetHandsOrderedByRank(\@winningPlayerHand, \@loserPlayerHand);
+# ok (@{$test4GameResults[0]}, $winningPlayerHand);
+# ok (@{$test4GameResults[1]}, $loserPlayerHand);
+
+# Test 5
+# Corresponding ranks between a full game of hands (4 players)
+my @orderedHands = Day7::GetHandsOrderedByRank (\@winningPlayerHand2, \@winningPlayerHand, \@loserPlayerHand);
+ok (@{$orderedHands[0]}, @winningPlayerHand);

@@ -8,7 +8,7 @@ use Common qw (contains println);
 
 package Day7;
 
-my %CARD_TO_RANK = (
+my %CARD_TO_CARDRANK = (
     "2" => 2,
     "3" => 3,
     "4" => 4, 
@@ -42,42 +42,42 @@ my @HAND_TYPES = (
     { # invalid hand rank...
         'Name' => 'Invalid',
         'CardCount' => [ 0 ],
-        'Rank' => 0
+        'HandRank' => 0
     },
     { # worst hand rank
         'Name' => 'High Card',
         'CardCount' => [ 1 ],
-        'Rank' => 1
+        'HandRank' => 1
     },
     {
         'Name' => 'Pair',
         'CardCount' => [ 2 ],
-        'Rank' => 2
+        'HandRank' => 2
     },
     {
         'Name' => 'Two Pair',
         'CardCount' => [ 2, 2 ],
-        'Rank' => 3
+        'HandRank' => 3
     },
     {
         'Name' => 'Three of a Kind',
         'CardCount' => [ 3 ],
-        'Rank' => 4
+        'HandRank' => 4
     },
     {
         'Name' => 'Full House',
         'CardCount' => [ 2, 3 ],
-        'Rank' => 5
+        'HandRank' => 5
     },
     {
         'Name' => 'Four of a Kind',
         'CardCount' => [ 4 ],
-        'Rank' => 6
+        'HandRank' => 6
     },
     {
         'Name' => 'Five of a Kind? Lol',
         'CardCount' => [ 5 ],
-        'Rank' => 7
+        'HandRank' => 7
     }
 );
 
@@ -99,7 +99,7 @@ sub GetCardCount #(cards)
     # }
 
 
-    my @cardKeys = keys (%CARD_TO_RANK);
+    my @cardKeys = keys (%CARD_TO_CARDRANK);
     foreach my $key (sort (@cardKeys))
     {
         # Common::println ("Key: $key");
@@ -116,7 +116,7 @@ sub GetCardCount #(cards)
 
 sub GetHandType #(cards)
 {
-    my @cards = split ('', shift ());
+    my @cards = @_;
     # todo: do something with cards and handcount
     my @cardCount = GetCardCount(@cards);
     Common::println ('GetCardCount!!');
@@ -132,6 +132,71 @@ sub GetHandType #(cards)
     }
     # If nothing matches, return invalid
     return $HAND_TYPES[0];
+}
+
+sub GetHandsOrderedByRank # (hand1, hand2, etc...)
+{
+    my @hands = @_;
+    Common::println ("Ordering hands!");
+    for my $hand (@hands)
+    {
+        Common::println ("[".join (' ', @{$hand})."]");
+    }
+
+    my @orderedHands = sort (&HandComp, @hands);
+
+    Common::println ("Ordered hands!");
+    for my $hand (@orderedHands)
+    {
+        Common::println ($hand);
+    }
+
+    return @orderedHands;
+}
+
+sub HandComp ( $ $ )
+{
+    my $handA = shift();
+    my $handB = shift();
+
+    my @handArrA = @{$handA};
+    my @handArrB = @{$handB};
+
+    # First check hand types
+    my $handAType = GetHandType (@handArrA);
+    my $handBType = GetHandType (@handArrB);
+
+    # If equal: check high card starting with the first card in both hands
+    if ($handAType->{'HandRank'} == $handBType->{'HandRank'})
+    {
+        # Common::println ("Hand Arr A Size: " . scalar (@handArrA));
+        foreach (0..scalar (@handArrA) - 1)
+        {
+            if (CardRankComp ($handArrA[$_], $handArrB[$_]))
+            {
+                return 1;
+            }
+            elsif (CardRankComp ( $handArrB[$_], $handArrA[$_] ))
+            {
+                return 0;
+            }
+        }
+        # If a tie, hand A wins I guess. *shrug*
+        return 1;
+    }
+
+    return $handAType->{'HandRank'} > $handBType->{'HandRank'};
+}
+
+sub CardRankComp ($ $)
+{
+    my $cardA = shift();
+    my $cardB = shift();
+    # Common::println "Card A then Card A's numeric rank!!";
+    # Common::println $cardA;
+    # Common::println $CARD_TO_CARDRANK{$cardA};
+    # Common::println "----";
+    return $CARD_TO_CARDRANK{"$cardA"} > $CARD_TO_CARDRANK{"$cardB"};
 }
 
 return 1;
